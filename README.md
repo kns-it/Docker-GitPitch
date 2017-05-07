@@ -15,3 +15,23 @@ wobei mit `-p 9000:9000` der Port angegeben wird, auf den der Container gemappt 
 Eine Beispiel-Datei für die **gitpitch.conf** ist im [Repository](application.conf) enthalten.
 
 Genaue Anweisungen zur Konfiguration von GitPitch können dem öffentlichen [Wiki](https://github.com/gitpitch/gitpitch/wiki/Server-Deploy-Instructions) entnommen werden.
+
+## Offline-Assets
+
+Damit die Offline-Assets korrekt funktionieren sollte in der **gitpitch.conf** der Abschnitt zu **offline** wie folgt aussehen:
+
+```json
+offline {
+
+    prod {
+        fixed {
+            assets {
+                home = "/gitpitch/lib/com.gitpitch.server-1.1-assets.jar"
+            }
+        }
+    }
+
+  }
+```
+
+ansonsten können die .js- und .css-Dateien nicht gefunden werden und die Offline-Version der Präsentation sieht sehr unspektakulär aus.
