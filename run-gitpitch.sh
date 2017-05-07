@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -f /gitpitch/RUNNING_PID ]; then
+	rm -f /gitpitch/RUNNING_PID
+fi
+
 if [ ! -d /etc/gitpitch ]; then
 	mkdir /etc/gitpitch;
 fi
