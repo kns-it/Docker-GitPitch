@@ -1,3 +1,9 @@
+# Build
+
+Build erfordert mindestens Docker Version 17.06.
+
+Anschließend kann Image mit `docker build [image:tag] .` gebuildet werden.
+
 # GitPitch Container
 
 Starten des Containers:
