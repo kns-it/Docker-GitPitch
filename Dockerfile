@@ -1,17 +1,22 @@
 FROM 1science/sbt:0.13.8-oracle-jre-8 as SBTBuild
-RUN apk update && apk add git
-COPY build_gitpitch.sh /
-RUN /build_gitpitch.sh
+RUN apk add --update git && \
+    git clone https://github.com/gitpitch/gitpitch.git /gitpitch && \
+    cd /gitpitch && \
+    sbt dist
 
-FROM java:openjdk-8-jre
+FROM alpine:3.6
 COPY --from=SBTBuild /gitpitch/target/universal/server-*.zip /tmp
-COPY setup.sh /setup.sh
-RUN /setup.sh && rm -f /setup.sh
+RUN apk add --update openjdk8-jre yarn nodejs-current unzip bash && \
+    rm -rf /var/cache/apk/* && \
+    yarn global add decktape && \
+    unzip /tmp/server-*.zip -d /gitpitch && \
+    rm -rf /tmp/* && \
+    mv /gitpitch/server-*/* /gitpitch/
 
-COPY run-gitpitch.sh /gitpitch/bin/run-gitpitch.sh
+ADD run-gitpitch.sh /gitpitch/bin/run-gitpitch.sh
 
 VOLUME /etc/gitpitch
 
 EXPOSE 9000
 
-ENTRYPOINT ["/gitpitch/bin/run-gitpitch.sh"]
+CMD ["/gitpitch/bin/run-gitpitch.sh"]
