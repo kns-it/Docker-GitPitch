@@ -6,5 +6,5 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 
-**/decktape
-**/gitpitch
+app-*.conf
+gomplate

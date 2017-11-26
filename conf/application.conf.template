@@ -40,8 +40,7 @@ akka {
 # ~~~~~
 # The secret key is used to sign Play's session cookie.
 # This must be changed for production, but we don't recommend you change it in this file.
-play.crypto.secret = "changeme"
-play.crypto.secret = ${?PLAY_CRYPTO_SECRET}
+play.crypto.secret = "{{ .Env.GP_APP_SECRET }}"
 
 ## Modules
 # https://www.playframework.com/documentation/latest/Modules
@@ -68,9 +67,9 @@ play.modules {
 # https://www.playframework.com/documentation/latest/IDE
 # ~~~~~
 # Depending on your IDE, you can add a hyperlink for errors that will jump you
-# directly to the code location in the IDE in dev mode. The following line makes 
-# use of the IntelliJ IDEA REST interface: 
-#play.editor=http://localhost:63342/api/file/?file=%s&line=%s 
+# directly to the code location in the IDE in dev mode. The following line makes
+# use of the IntelliJ IDEA REST interface:
+#play.editor=http://localhost:63342/api/file/?file=%s&line=%s
 
 ## Internationalisation
 # https://www.playframework.com/documentation/latest/JavaI18N
@@ -238,7 +237,7 @@ play.filters {
 
     # The allowed origins. If null, all origins are allowed.
     #allowedOrigins = ["http://www.example.com"]
-    allowedOrigins = [".gitpitch.com", "localhost:9000", "127.0.0.1:9000"]
+    allowedOrigins = [".gitpitch.com", "{{getenv "GP_HOST" "localhost"}}:9000", "127.0.0.1:9000"]
 
     # The allowed HTTP methods. If null, all methods are allowed
     #allowedHttpMethods = ["GET", "POST"]
@@ -291,7 +290,7 @@ play.filters {
   # This is useful to prevent cache poisoning attacks.
   hosts {
     # Allow requests to example.com, its subdomains, and localhost:9000.
-    allowed = ["localhost", "127.0.0.1", ".local"]
+    allowed = ["{{getenv "GP_HOST" "localhost"}}", "127.0.0.1", ".local"]
   }
 }
 
@@ -360,7 +359,7 @@ db {
 # GitPitch Custom Configuration
 gitpitch {
 
-  hostname = "localhost:9000"
+  hostname = "{{getenv "GP_HOST" "localhost"}}:9000"
 
   https = false
 
@@ -374,7 +373,7 @@ gitpitch {
   }
 
   decktape {
-    home = "/decktape"
+    home = "../decktape"
   }
 
   offline {
@@ -382,7 +381,20 @@ gitpitch {
     prod {
         fixed {
             assets {
-                home = "/gitpitch/lib/com.gitpitch.server-1.1-assets.jar"
+                home = "./lib/com.gitpitch.server-2.0-assets.jar"
+            }
+        }
+    }
+
+    dev {
+        fixed {
+            assets {
+                home = "./public/libs"
+            }
+        }
+        math {
+            assets {
+                home = "./public/libs-math"
             }
         }
     }
@@ -390,57 +402,105 @@ gitpitch {
   }
 
   dependency {
-    revealjs    = "3.4.1"
+    revealjs    = "3.5.0"
     bootstrap   = "3.3.6"
     jquery      = "2.2.4"
     fontawesome = "4.6.3"
     octicons    = "3.5.0"
-    highlightjs = "9.6.0"
-  }
-
-  github {
-    api {
-      // token = "your-GitHub-api-auth-token"
+    highlightjs = "9.12.0"
+    highlight {
+        plugin = false
     }
   }
 
   git {
     repo {
         services = [
-
+            {{if (getenv "GP_GITHUB_AS_DEFAULT" "") }}
             {
                 name        = "GitHub"
                 type        = "github"
                 site        = "https://github.com/"
                 apibase     = "https://api.github.com/"
-                // apitoken    = "token your-github-access-token-here"
+                apitoken    = "{{ getenv "GP_GITHUB_ACCESS_TOKEN" "" }}"
                 apitokenheader    = "Authorization"
                 rawbase     = "https://raw.githubusercontent.com/"
-                default     = "true"
+                gistbase    = "https://gist.githubusercontent.com/"
+                branchdelim = "~"
+                default     = "{{ getenv "GP_GITHUB_AS_DEFAULT" "true" }}"
             }
+            {{end}}
+            {{if (getenv "GP_GITLAB_BASE" "") }}
             {
                 name        = "GitLab"
                 type        = "gitlab"
-                site        = "https://gitlab.com/"
-                apibase     = "https://gitlab.com/api/v3/"
-                // apitoken    = "your-gitlab-access-token-here"
+                site        = "{{ getenv "GP_GITLAB_BASE" "" }}"
+                apibase     = "{{ getenv "GP_GITLAB_API" "" }}"
+                apitoken    = "{{ getenv "GP_GITLAB_ACCESS_TOKEN" "" }}"
                 apitokenheader    = "PRIVATE-TOKEN"
-                rawbase     = "https://gitlab.com/"
-                default     = "false"
+                rawbase     = "{{ getenv "GP_GITLAB_BASE" "" }}"
+                branchdelim = "~"
+                default     = "{{ getenv "GP_GITLAB_AS_DEFAULT" "false" }}"
             }
+            {{end}}
+            {{if (getenv "GP_BITBUCKET_BASE" "" ) }}
             {
                 name        = "Bitbucket"
                 type        = "bitbucket"
-                site        = "https://bitbucket.org/"
-                apibase     = "https://api.bitbucket.org/2.0/"
-                // apitoken    = "your-bitbucket-access-token-here"
+                site        = "{{ getenv "GP_BITBUCKET_BASE" "" }}"
+                apibase     = "{{ getenv "GP_BITBUCKET_API" "" }}"
+                apitoken    = "{{ getenv "GP_BITBUCKET_ACCESS_TOKEN" "" }}"
                 apitokenheader    = "Authorization"
-                rawbase     = "https://bitbucket.org/"
-                default     = "false"
+                rawbase     = "{{ getenv "GP_BITBUCKET_BASE" "" }}"
+                branchdelim = "~"
+                default     = "{{ getenv "GP_BITBUCKET_AS_DEFAULT" "false" }}"
             }
-
+            {{end}}
+            {{if (getenv "GP_GITEA_BASE" "") }}
+            {
+                name        = "Gitea"
+                type        = "gitea"
+                site        = "{{ getenv "GP_GITEA_BASE" "" }}"
+                apibase     = "{{ getenv "GP_GITEA_API" "" }}"
+                apitoken    = "{{ getenv "GP_GITEA_ACCESS_TOKEN" "" }}"
+                apitokenheader    = "Authorization"
+                rawbase     = "{{ getenv "GP_GITEA_BASE" "" }}"
+                branchdelim = "~"
+                default     = "{{ getenv "GP_GITEA_AS_DEFAULT" "false" }}"
+            }
+            {{end}}
+            {{if (getenv "GP_GOGS_BASE" "") }}
+            {
+                name        = "Gogs"
+                type        = "gogs"
+                site        = "{{ getenv "GP_GOGS_BASE" "" }}"
+                apibase     = "{{ getenv "GP_GOGS_API" "" }}"
+                apitoken    = "{{ getenv "GP_GOGS_ACCESS_TOKEN" "" }}"
+                apitokenheader    = "Authorization"
+                rawbase     = "{{ getenv "GP_GOGS_BASE" "" }}"
+                branchdelim = "~"
+                default     = "{{ getenv "GP_GOGS_AS_DEFAULT" "false" }}"
+            }
+            {{end}}
+            {{ if (getenv "GP_GITBUCKET_BASE" "" ) }}
+            {
+                name        = "GitBucket"
+                type        = "gitbucket"
+                site        = "{{ getenv "GP_GITBUCKET_BASE" "" }}"
+                apibase     = "{{ getenv "GP_GITBUCKET_API" "" }}"
+                apitoken    = "{{ getenv "GP_GITBUCKET_ACCESS_TOKEN" "" }}"
+                apitokenheader    = "Authorization"
+                rawbase = "{{ getenv "GP_GITBUCKET_BASE" "" }}"
+                branchdelim = "~"
+                default     = "{{ getenv "GP_GITBUCKET_AS_DEFAULT" "false" }}"
+            }
+            {{end}}
         ]
     }
+  }
+
+  revealjs {
+    themes = ["black", "moon", "night", "beige", "sky", "white"]
   }
 
   google {
