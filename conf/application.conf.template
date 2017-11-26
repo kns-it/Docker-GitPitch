@@ -373,7 +373,7 @@ gitpitch {
   }
 
   decktape {
-    home = "../decktape"
+    home = "/usr/local/share/.config/yarn/global/node_modules/decktape"
   }
 
   offline {
