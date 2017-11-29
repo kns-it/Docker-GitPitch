@@ -1,9 +1,11 @@
 # Build container for GitPitch
-FROM 1science/sbt:0.13.8-oracle-jre-8 as SBTBuild
-RUN apk add --update git && \
-    git clone https://github.com/gitpitch/gitpitch.git /gitpitch && \
-    cd /gitpitch && \
-    sbt dist
+FROM bigtruedata/sbt:0.13.15-alpine-2.11.11 as SBTBuild
+RUN apk add --update --no-cache git unzip && \
+    git clone https://github.com/gitpitch/gitpitch.git /gitpitch-git && \
+    cd /gitpitch-git && \
+    sbt dist && \
+    unzip /gitpitch-git/target/universal/server-*.zip -d /tmp && \
+    mv /tmp/server-* /gitpitch
 
 # Build container for gomplate
 FROM golang:1.9.1-alpine3.6 as GoBuild
@@ -39,23 +41,17 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 
 # copy from build containers
 COPY --from=GoBuild /go/src/github.com/hairyhenderson/gomplate/bin/gomplate_linux-amd64-slim /usr/bin/gomplate
-COPY --from=SBTBuild /gitpitch/target/universal/server-*.zip /tmp
+COPY --from=SBTBuild /gitpitch /gitpitch
 
 # setup runtime environment
 RUN apk add --update --no-cache zip \
-                                unzip \
                                 bash \
-                                fontconfig \
-                                curl && \
-    unzip /tmp/server-*.zip -d /gitpitch && \
-    rm -rf /tmp/* && \
-    mv /gitpitch/server-*/* /gitpitch/ && \
+                                fontconfig && \
     chmod +x /usr/bin/gomplate && \
     adduser -h /home/gitpitch -s /bin/sh -D gitpitch && \
     mkdir /etc/gitpitch && \
     chown -R gitpitch /etc/gitpitch && \
-    chown -R gitpitch /gitpitch && \
-    apk del --purge yarn unzip curl
+    chown -R gitpitch /gitpitch
 
 ADD ./bin/run-gitpitch.sh /gitpitch/bin/run-gitpitch.sh
 ADD ./conf/application.conf.template /gitpitch/conf/application.conf.template
