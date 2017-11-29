@@ -21,7 +21,7 @@ RUN sed -i -e 's/v3\.6/edge/g' /etc/apk/repositories && \
     make build-release
 
 # Runtime container
-FROM java:8-jre-alpine
+FROM alpine:3.6
 
 ENV GITPITCH_VERSION=2.0
 
@@ -42,25 +42,29 @@ COPY --from=GoBuild /go/src/github.com/hairyhenderson/gomplate/bin/gomplate_linu
 COPY --from=SBTBuild /gitpitch/target/universal/server-*.zip /tmp
 
 # setup runtime environment
-RUN apk add --update --no-cache zip \
+RUN apk add --update --no-cache openjdk8-jre \
+                                yarn \
+                                nodejs-current \
+                                zip \
                                 unzip \
                                 bash \
                                 fontconfig \
                                 curl && \
+    yarn global add decktape && \
     unzip /tmp/server-*.zip -d /gitpitch && \
     rm -rf /tmp/* && \
     mv /gitpitch/server-*/* /gitpitch/ && \
     chmod +x /usr/bin/gomplate && \
-    adduser -h /home/gitpitch -s /bin/sh -D gitpitch && \
-    mkdir /etc/gitpitch && \
-    chown -R gitpitch /etc/gitpitch && \
-    chown -R gitpitch /gitpitch
+    cd /usr/share && \
+    curl -L https://github.com/Overbryd/docker-phantomjs-alpine/releases/download/2.11/phantomjs-alpine-x86_64.tar.bz2 | tar xj && \
+    ln -s /usr/share/phantomjs/phantomjs /usr/bin/phantomjs && \
+    mkdir -p /usr/local/share/.config/yarn/global/node_modules/decktape/bin && \
+    ln -s /usr/share/phantomjs/phantomjs /usr/local/share/.config/yarn/global/node_modules/decktape/bin/phantomjs && \
+    apk del --purge yarn unzip curl
 
 ADD ./bin/run-gitpitch.sh /gitpitch/bin/run-gitpitch.sh
 ADD ./conf/application.conf.template /gitpitch/conf/application.conf.template
 
 EXPOSE 9000
-
-USER gitpitch
 
 CMD ["/gitpitch/bin/run-gitpitch.sh"]
