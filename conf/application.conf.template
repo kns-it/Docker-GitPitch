@@ -369,11 +369,11 @@ gitpitch {
     # When setting a custom path for this directory
     # it is strongly recommended to use an absolute path.
     #
-    home = "/tmp/gitpitch/swap"
+    home = "/home/gitpitch/swap"
   }
 
   decktape {
-    home = "/usr/local/share/.config/yarn/global/node_modules/decktape"
+    home = "/usr/local/bin/decktape"
   }
 
   offline {
@@ -385,20 +385,6 @@ gitpitch {
             }
         }
     }
-
-    dev {
-        fixed {
-            assets {
-                home = "./public/libs"
-            }
-        }
-        math {
-            assets {
-                home = "./public/libs-math"
-            }
-        }
-    }
-
   }
 
   dependency {
