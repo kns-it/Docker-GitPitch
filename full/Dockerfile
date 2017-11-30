@@ -1,9 +1,11 @@
 # Build container for GitPitch
-FROM 1science/sbt:0.13.8-oracle-jre-8 as SBTBuild
-RUN apk add --update git && \
-    git clone https://github.com/gitpitch/gitpitch.git /gitpitch && \
-    cd /gitpitch && \
-    sbt dist
+FROM bigtruedata/sbt:0.13.15-alpine-2.11.11 as SBTBuild
+RUN apk add --update --no-cache git unzip && \
+    git clone https://github.com/gitpitch/gitpitch.git /gitpitch-git && \
+    cd /gitpitch-git && \
+    sbt dist && \
+    unzip /gitpitch-git/target/universal/server-*.zip -d /tmp && \
+    mv /tmp/server-* /gitpitch
 
 # Build container for gomplate
 FROM golang:1.9.1-alpine3.6 as GoBuild
@@ -21,14 +23,14 @@ RUN sed -i -e 's/v3\.6/edge/g' /etc/apk/repositories && \
     make build-release
 
 # Runtime container
-FROM alpine:3.6
+FROM java:openjdk-8-jre
 
 ENV GITPITCH_VERSION=2.0
 
 # metadata
 LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="GitPitch" \
-      org.label-schema.description="GitPitch including Decktape in an Alpine container" \
+      org.label-schema.name="GitPitch-PDF" \
+      org.label-schema.description="GitPitch with PDF support" \
       org.label-schema.url="https://github.com/kns-it/Docker-GitPitch" \
       org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/kns-it/Docker-GitPitch" \
@@ -39,32 +41,37 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 
 # copy from build containers
 COPY --from=GoBuild /go/src/github.com/hairyhenderson/gomplate/bin/gomplate_linux-amd64-slim /usr/bin/gomplate
-COPY --from=SBTBuild /gitpitch/target/universal/server-*.zip /tmp
+COPY --from=SBTBuild /gitpitch /gitpitch
 
-# setup runtime environment
-RUN apk add --update --no-cache openjdk8-jre \
-                                yarn \
-                                nodejs-current \
-                                zip \
-                                unzip \
-                                bash \
-                                fontconfig \
-                                curl && \
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    curl -sS https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list && \
+    apt-get update && \
+    apt-get install -y  zip \
+                        fontconfig \
+                        apt-transport-https \
+                        google-chrome-unstable \
+                        --no-install-recommends && \
+    apt-get install -y  nodejs \
+                        yarn \
+                        --no-install-recommends && \
     yarn global add decktape && \
-    unzip /tmp/server-*.zip -d /gitpitch && \
-    rm -rf /tmp/* && \
-    mv /gitpitch/server-*/* /gitpitch/ && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /src/*.deb && \
     chmod +x /usr/bin/gomplate && \
-    cd /usr/share && \
-    curl -L https://github.com/Overbryd/docker-phantomjs-alpine/releases/download/2.11/phantomjs-alpine-x86_64.tar.bz2 | tar xj && \
-    ln -s /usr/share/phantomjs/phantomjs /usr/bin/phantomjs && \
-    mkdir -p /usr/local/share/.config/yarn/global/node_modules/decktape/bin && \
-    ln -s /usr/share/phantomjs/phantomjs /usr/local/share/.config/yarn/global/node_modules/decktape/bin/phantomjs && \
-    apk del --purge yarn unzip curl
+    adduser --home /home/gitpitch --disabled-password --gecos "" gitpitch && \
+    mkdir /etc/gitpitch && \
+    chown -R gitpitch /gitpitch && \
+    chown -R gitpitch /etc/gitpitch && \
+    chown -R gitpitch /usr/local/share/.config/yarn/
 
 ADD ./bin/run-gitpitch.sh /gitpitch/bin/run-gitpitch.sh
 ADD ./conf/application.conf.template /gitpitch/conf/application.conf.template
 
 EXPOSE 9000
+
+USER gitpitch
 
 CMD ["/gitpitch/bin/run-gitpitch.sh"]

@@ -30,7 +30,7 @@ ENV GITPITCH_VERSION=2.0
 # metadata
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="GitPitch" \
-      org.label-schema.description="GitPitch including Decktape in an Alpine container" \
+      org.label-schema.description="GitPitch in basic version without PDF export support" \
       org.label-schema.url="https://github.com/kns-it/Docker-GitPitch" \
       org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/kns-it/Docker-GitPitch" \

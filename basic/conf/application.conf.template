@@ -373,7 +373,6 @@ gitpitch {
   }
 
   decktape {
-    optionalArgs = "--no-sandbox"
     home = "/usr/local/bin/decktape"
   }
 
