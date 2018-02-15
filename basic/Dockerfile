@@ -7,21 +7,6 @@ RUN apk add --update --no-cache git unzip && \
     unzip /gitpitch-git/target/universal/server-*.zip -d /tmp && \
     mv /tmp/server-* /gitpitch
 
-# Build container for gomplate
-FROM golang:1.9.1-alpine3.6 as GoBuild
-
-ENV GOMPLATE_VERSION="v2.2.0"
-
-RUN sed -i -e 's/v3\.6/edge/g' /etc/apk/repositories && \
-    apk --update add git \
-                     make \
-                     upx && \
-    mkdir -p /go/src/github.com/hairyhenderson && \
-    cd /go/src/github.com/hairyhenderson && \
-    git clone --branch "$GOMPLATE_VERSION" https://github.com/hairyhenderson/gomplate.git && \
-    cd gomplate/ && \
-    make build-release
-
 # Runtime container
 FROM java:8-jre-alpine
 
@@ -39,8 +24,9 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0" \
       maintainer="sebastian.kurfer@kns-it.de"
 
+ADD https://github.com/hairyhenderson/gomplate/releases/download/$GOMPLATE_VERSION/gomplate_linux-amd64-slim /usr/bin/gomplate
+
 # copy from build containers
-COPY --from=GoBuild /go/src/github.com/hairyhenderson/gomplate/bin/gomplate_linux-amd64-slim /usr/bin/gomplate
 COPY --from=SBTBuild /gitpitch /gitpitch
 
 # setup runtime environment

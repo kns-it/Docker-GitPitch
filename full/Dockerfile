@@ -7,25 +7,12 @@ RUN apk add --update --no-cache git unzip && \
     unzip /gitpitch-git/target/universal/server-*.zip -d /tmp && \
     mv /tmp/server-* /gitpitch
 
-# Build container for gomplate
-FROM golang:1.9.1-alpine3.6 as GoBuild
-
-ENV GOMPLATE_VERSION="v2.2.0"
-
-RUN sed -i -e 's/v3\.6/edge/g' /etc/apk/repositories && \
-    apk --update add git \
-                     make \
-                     upx && \
-    mkdir -p /go/src/github.com/hairyhenderson && \
-    cd /go/src/github.com/hairyhenderson && \
-    git clone --branch "$GOMPLATE_VERSION" https://github.com/hairyhenderson/gomplate.git && \
-    cd gomplate/ && \
-    make build-release
-
 # Runtime container
 FROM java:openjdk-8-jre
 
 ENV GITPITCH_VERSION=2.0
+
+ARG GOMPLATE_VERSION="v2.2.0"
 
 # metadata
 LABEL org.label-schema.build-date=$BUILD_DATE \
@@ -39,8 +26,8 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0" \
       maintainer="sebastian.kurfer@kns-it.de"
 
-# copy from build containers
-COPY --from=GoBuild /go/src/github.com/hairyhenderson/gomplate/bin/gomplate_linux-amd64-slim /usr/bin/gomplate
+ADD https://github.com/hairyhenderson/gomplate/releases/download/$GOMPLATE_VERSION/gomplate_linux-amd64-slim /usr/bin/gomplate
+
 COPY --from=SBTBuild /gitpitch /gitpitch
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
@@ -53,6 +40,7 @@ RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
                         fontconfig \
                         apt-transport-https \
                         google-chrome-unstable \
+			gconf2 \
                         --no-install-recommends && \
     apt-get install -y  nodejs \
                         yarn \
