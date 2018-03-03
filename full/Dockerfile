@@ -12,7 +12,7 @@ FROM java:openjdk-8-jre
 
 ENV GITPITCH_VERSION=2.0
 
-ARG GOMPLATE_VERSION="v2.2.0"
+ARG GOMPLATE_VERSION="v2.3.0"
 
 # metadata
 LABEL org.label-schema.build-date=$BUILD_DATE \

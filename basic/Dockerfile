@@ -10,6 +10,8 @@ RUN apk add --update --no-cache git unzip && \
 # Runtime container
 FROM java:8-jre-alpine
 
+ARG GOMPLATE_VERSION="v2.3.0"
+
 ENV GITPITCH_VERSION=2.0
 
 # metadata
