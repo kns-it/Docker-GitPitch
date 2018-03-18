@@ -70,7 +70,7 @@ Have a look at the following section containing all available environment variab
 | ---------------------- | ------------------------------ | ------------------------------- |
 | `GP_GOGS_BASE`         | Base URL of the Gogs instance  | https://localhost:3000/         |
 | `GP_GOGS_API`          | URL to the current API version | http://localhost:3000/api/v1/   |
-| `GP_GOGS_ACCESS_TOKEN` | Private token for Gogs         | your-gitea-app-token-here |
+| `GP_GOGS_ACCESS_TOKEN` | Private token for Gogs         | your-gogs-app-token-here |
 | `GP_GOGS_AS_DEFAULT`   | Set Gogs as default            | true (default false)            |
 
 ## GitBucket
