@@ -1,5 +1,9 @@
 # GitPitch Container
 
+> GitPitch now offers [GitPitch Enterprise](https://gitpitch.com/pricing), the official Docker
+container for GitPitch which runs the same enhanced server
+that runs on [gitpitch.com](https://gitpitch.com).
+
 It's recommended to run the container with `docker-compose` because there are a few environment variables and it's easier to configure them all in one `docker-compose.yml` than passing them all in one `docker run` statement.
 
 But if you want to, you could run the container like this:
