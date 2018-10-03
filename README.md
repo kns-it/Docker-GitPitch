@@ -30,7 +30,8 @@ Have a look at the following section containing all available environment variab
 
 | Variable        | Explanation                                                      | Example                                                          |
 | --------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `GP_HOST`       | Host binding                                                     | localhost:9000 or 192.168.0.2                                    |
+| `GP_HOST`       | Host binding                                                     | localhost or 192.168.0.2                                         |
+| `GP_PORT`       | Port publishing (used for CORS headers)                          | 9000 or 80 or 443                                                |
 | `GP_APP_SECRET` | Play Framework crypto secret (random will be created if not set) | QCY?tAnfk?aZ?iwrNwnxIlR6CTf:G3gf:90Latabg@5241AB`R5W:1uDFN];Ik@n |
 
 ## GitHub
