@@ -1,16 +1,16 @@
 # Build container for GitPitch
 FROM bigtruedata/sbt:0.13.15-alpine-2.11.11 as SBTBuild
-RUN apk add --update --no-cache git unzip && \
-    git clone https://github.com/gitpitch/gitpitch.git /gitpitch-git && \
-    cd /gitpitch-git && \
+RUN apk add --update --no-cache git unzip
+RUN git clone https://github.com/gitpitch/gitpitch.git /gitpitch-git
+RUN cd /gitpitch-git && \
     sbt dist && \
     unzip /gitpitch-git/target/universal/server-*.zip -d /tmp && \
     mv /tmp/server-* /gitpitch
 
 # Runtime container
-FROM java:8-jre-alpine
+FROM openjdk:8u181-jre-alpine3.8
 
-ARG GOMPLATE_VERSION="v2.3.0"
+ARG GOMPLATE_VERSION="v3.1.0"
 
 ENV GITPITCH_VERSION=2.0
 
@@ -26,7 +26,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0" \
       maintainer="sebastian.kurfer@kns-it.de"
 
-ADD https://github.com/hairyhenderson/gomplate/releases/download/$GOMPLATE_VERSION/gomplate_linux-amd64-slim /usr/bin/gomplate
+ADD https://github.com/hairyhenderson/gomplate/releases/download/$GOMPLATE_VERSION/gomplate_linux-amd64 /usr/bin/gomplate
 
 # copy from build containers
 COPY --from=SBTBuild /gitpitch /gitpitch

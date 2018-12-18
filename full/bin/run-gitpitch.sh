@@ -8,12 +8,9 @@ if [ -f /gitpitch/RUNNING_PID ]; then
 	rm -f /gitpitch/RUNNING_PID
 fi
 
-if [ ! -d /etc/gitpitch ]; then
-	mkdir /etc/gitpitch;
-fi
-
 if [ ! -f /etc/gitpitch/gitpitch.conf ]; then
-	cat /gitpitch/conf/application.conf.template | gomplate -o /etc/gitpitch/gitpitch.conf
+	cat /gitpitch/conf/application.conf.template | gomplate -o /gitpitch/conf/gitpitch.conf
+	chmod 440 /gitpitch/conf/gitpitch.conf
 fi
 
-/gitpitch/bin/server -Dconfig.file=/etc/gitpitch/gitpitch.conf
+/gitpitch/bin/server -Dconfig.file=/gitpitch/conf/gitpitch.conf

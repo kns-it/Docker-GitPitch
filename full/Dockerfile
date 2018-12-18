@@ -1,18 +1,18 @@
 # Build container for GitPitch
 FROM bigtruedata/sbt:0.13.15-alpine-2.11.11 as SBTBuild
-RUN apk add --update --no-cache git unzip && \
-    git clone https://github.com/gitpitch/gitpitch.git /gitpitch-git && \
-    cd /gitpitch-git && \
+RUN apk add --update --no-cache git unzip
+RUN git clone https://github.com/gitpitch/gitpitch.git /gitpitch-git
+RUN cd /gitpitch-git && \
     sbt dist && \
     unzip /gitpitch-git/target/universal/server-*.zip -d /tmp && \
     mv /tmp/server-* /gitpitch
 
 # Runtime container
-FROM java:openjdk-8-jre
+FROM openjdk:8u181-jre-slim-stretch
 
 ENV GITPITCH_VERSION=2.0
 
-ARG GOMPLATE_VERSION="v2.3.0"
+ARG GOMPLATE_VERSION="v3.1.0"
 
 # metadata
 LABEL org.label-schema.build-date=$BUILD_DATE \
