@@ -28,9 +28,6 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 
 ADD https://github.com/hairyhenderson/gomplate/releases/download/$GOMPLATE_VERSION/gomplate_linux-amd64 /usr/bin/gomplate
 
-# copy from build containers
-COPY --from=SBTBuild /gitpitch /gitpitch
-
 # setup runtime environment
 RUN apk add --update --no-cache zip \
                                 bash \
@@ -38,8 +35,10 @@ RUN apk add --update --no-cache zip \
     chmod +x /usr/bin/gomplate && \
     adduser -h /home/gitpitch -s /bin/sh -D gitpitch && \
     mkdir /etc/gitpitch && \
-    chown -R gitpitch /etc/gitpitch && \
-    chown -R gitpitch /gitpitch
+    chown -R gitpitch /etc/gitpitch
+
+# copy from build containers
+COPY --from=SBTBuild --chown=gitpitch:gitpitch /gitpitch /gitpitch
 
 ADD ./bin/run-gitpitch.sh /gitpitch/bin/run-gitpitch.sh
 ADD ./conf/application.conf.template /gitpitch/conf/application.conf.template
